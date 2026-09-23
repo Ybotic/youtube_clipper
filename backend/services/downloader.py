@@ -38,6 +38,8 @@ def download_video(url: str, job_dir: Path) -> Path:
         "socket_timeout": 30,
         "max_filesize": 2 * 1024 * 1024 * 1024,
     }
+    if Path(settings.ffmpeg_binary).is_file():
+        options["ffmpeg_location"] = str(Path(settings.ffmpeg_binary).parent)
 
     try:
         with yt_dlp.YoutubeDL(options) as client:

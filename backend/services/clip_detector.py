@@ -26,17 +26,25 @@ def _transcript_for_prompt(transcript: dict[str, Any]) -> str:
 
 
 def find_best_clips(transcript: dict[str, Any]) -> list[CandidateClip]:
-    if not settings.openai_api_key:
-        raise ClipDetectionError("OPENAI_API_KEY is not configured.")
+    if not settings.openrouter_api_key:
+        raise ClipDetectionError("OPENROUTER_API_KEY is not configured.")
 
     try:
         from openai import OpenAI
 
-        client = OpenAI(api_key=settings.openai_api_key)
+        client = OpenAI(
+            api_key=settings.openrouter_api_key,
+            base_url="https://openrouter.ai/api/v1",
+            default_headers={
+                "HTTP-Referer": "http://localhost:3000",
+                "X-Title": "AI Clipper",
+            },
+        )
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=settings.openrouter_model,
             temperature=0.3,
             response_format={"type": "json_object"},
+            extra_body={"reasoning": {"enabled": True}},
             messages=[
                 {
                     "role": "system",

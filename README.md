@@ -31,7 +31,7 @@ Jobs are intentionally in memory for this MVP. A process restart clears active j
 - Python 3.11 (recommended; the included Dockerfile uses 3.11)
 - Node.js 18.17 or newer and npm
 - FFmpeg available on `PATH`, including the `subtitles` filter
-- An OpenAI API key
+- An OpenRouter API key
 - A machine with enough disk space for downloaded videos and enough memory for Whisper
 
 Install FFmpeg:
@@ -52,15 +52,22 @@ From the project root:
 
 ```bash
 cp .env.example .env
-# Set OPENAI_API_KEY in .env
+# Set OPENROUTER_API_KEY in .env
 
-python3 -m venv .venv
+# Python 3.11 is recommended. uv can install it without system sudo access.
+uv python install 3.11
+uv venv --python 3.11 .venv
+uv pip install --python .venv/bin/python --index-url https://download.pytorch.org/whl/cpu torch
+uv pip install --python .venv/bin/python setuptools==69.5.1 wheel==0.45.1
+uv pip install --python .venv/bin/python --no-build-isolation -r backend/requirements.txt
 source .venv/bin/activate
-pip install -r backend/requirements.txt
 
 cd frontend
 npm install
 ```
+
+If FFmpeg is not installed system-wide, set `FFMPEG_BINARY` to its absolute path
+in `.env`. The application also auto-detects `./.tools/bin/ffmpeg`.
 
 Run the backend in one terminal:
 
@@ -103,11 +110,13 @@ The frontend is at `http://localhost:3000` and the API is at `http://localhost:8
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
-| `OPENAI_API_KEY` | Required for clip selection | none |
+| `OPENROUTER_API_KEY` | Required for clip selection | none |
+| `OPENROUTER_MODEL` | OpenRouter model for clip selection | `openai/gpt-5.6-luna` |
 | `WHISPER_MODEL` | Whisper model name | `base` |
 | `MAX_VIDEO_SECONDS` | Download duration limit | `7200` |
 | `FRONTEND_ORIGIN` | Allowed browser origin | `http://localhost:3000` |
 | `NEXT_PUBLIC_API_URL` | Frontend API origin | `http://localhost:8000` |
+| `FFMPEG_BINARY` | Optional FFmpeg executable path | auto-detected local binary or `ffmpeg` |
 
 ## Known Limitations
 

@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 
 from backend.services.captions import write_ass_file
+from backend.settings import settings
 
 
 class VideoEditorError(RuntimeError):
@@ -11,7 +12,7 @@ class VideoEditorError(RuntimeError):
 def _run_ffmpeg(args: list[str]) -> None:
     try:
         process = subprocess.run(
-            ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", *args],
+            [settings.ffmpeg_binary, "-y", "-hide_banner", "-loglevel", "error", *args],
             capture_output=True,
             text=True,
             check=False,
@@ -33,7 +34,8 @@ def render_clip(
 ) -> None:
     write_ass_file(transcript, start, end, subtitle_path)
     duration = max(1.0, end - start)
-    subtitle_filter = f"subtitles={subtitle_path.as_posix().replace(':', '\\:')}"
+    escaped_subtitle_path = subtitle_path.as_posix().replace(":", "\\:")
+    subtitle_filter = f"subtitles={escaped_subtitle_path}"
     video_filter = (
         "scale=1080:1920:force_original_aspect_ratio=increase,"
         "crop=1080:1920,"
