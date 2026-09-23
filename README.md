@@ -51,13 +51,12 @@ sudo apt-get update && sudo apt-get install ffmpeg
 From the project root:
 
 ```bash
-cp .env.example .env
-# Set OPENROUTER_API_KEY in .env
+# Create .env and set OPENROUTER_API_KEY in it
 
 # Python 3.11 is recommended. uv can install it without system sudo access.
 uv python install 3.11
 uv venv --python 3.11 .venv
-uv pip install --python .venv/bin/python --index-url https://download.pytorch.org/whl/cpu torch
+uv pip install --python .venv/bin/python --index-url https://download.pytorch.org/whl/cu128 torch
 uv pip install --python .venv/bin/python setuptools==69.5.1 wheel==0.45.1
 uv pip install --python .venv/bin/python --no-build-isolation -r backend/requirements.txt
 source .venv/bin/activate
@@ -113,6 +112,7 @@ The frontend is at `http://localhost:3000` and the API is at `http://localhost:8
 | `OPENROUTER_API_KEY` | Required for clip selection | none |
 | `OPENROUTER_MODEL` | OpenRouter model for clip selection | `openai/gpt-5.6-luna` |
 | `WHISPER_MODEL` | Whisper model name | `base` |
+| `WHISPER_DEVICE` | Whisper device: `auto`, `cuda`, or `cpu` | `auto` |
 | `MAX_VIDEO_SECONDS` | Download duration limit | `7200` |
 | `FRONTEND_ORIGIN` | Allowed browser origin | `http://localhost:3000` |
 | `NEXT_PUBLIC_API_URL` | Frontend API origin | `http://localhost:8000` |

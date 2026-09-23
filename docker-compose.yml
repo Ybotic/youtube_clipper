@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    gpus: all
     env_file:
       - .env
     ports:

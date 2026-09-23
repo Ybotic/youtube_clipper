@@ -14,6 +14,48 @@ _model = None
 _model_lock = Lock()
 
 
+def _patch_whisper_timing() -> None:
+    import whisper.timing as timing
+
+    if getattr(timing, "_clipper_timing_patched", False):
+        return
+
+    original_median_filter = timing.median_filter
+    original_dtw = timing.dtw
+
+    def median_filter_compat(x, filter_width):
+        try:
+            return original_median_filter(x, filter_width)
+        except TypeError:
+            return x.unfold(-1, filter_width, 1).sort()[0][..., filter_width // 2]
+
+    def dtw_compat(x):
+        try:
+            return original_dtw(x)
+        except TypeError:
+            return timing.dtw_cpu(x.double().cpu().numpy())
+
+    timing.median_filter = median_filter_compat
+    timing.dtw = dtw_compat
+    timing._clipper_timing_patched = True
+
+
+def _get_device() -> str:
+    try:
+        import torch
+    except Exception as exc:
+        raise TranscriptionError(f"Could not load PyTorch: {exc}") from exc
+
+    configured = settings.whisper_device.strip().lower()
+    if configured == "auto":
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    if configured == "cuda" and not torch.cuda.is_available():
+        raise TranscriptionError(
+            "WHISPER_DEVICE=cuda was requested, but CUDA is not available."
+        )
+    return configured
+
+
 def _get_model():
     global _model
     with _model_lock:
@@ -21,8 +63,14 @@ def _get_model():
             try:
                 import whisper
 
-                _model = whisper.load_model(settings.whisper_model)
+                device = _get_device()
+                if device == "cuda":
+                    _patch_whisper_timing()
+                print(f"Loading Whisper {settings.whisper_model} on {device}")
+                _model = whisper.load_model(settings.whisper_model, device=device)
             except Exception as exc:
+                if isinstance(exc, TranscriptionError):
+                    raise
                 raise TranscriptionError(f"Could not load Whisper: {exc}") from exc
     return _model
 
