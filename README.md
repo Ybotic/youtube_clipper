@@ -51,7 +51,8 @@ sudo apt-get update && sudo apt-get install ffmpeg
 From the project root:
 
 ```bash
-# Create .env and set OPENROUTER_API_KEY in it
+cp .env.example .env
+# Set OPENROUTER_API_KEY in .env
 
 # Python 3.11 is recommended. uv can install it without system sudo access.
 uv python install 3.11
