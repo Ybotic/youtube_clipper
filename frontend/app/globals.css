@@ -30,6 +30,25 @@ input {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
 }
 
+.clip-player:fullscreen {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+}
+
+.clip-player:fullscreen video {
+  width: min(100vw, calc(100vh * 9 / 16));
+  height: min(100vh, calc(100vw * 16 / 9));
+  flex: none;
+  aspect-ratio: 9 / 16;
+  object-fit: contain;
+}
+
 .loader {
   animation: pulse 1.4s ease-in-out infinite;
 }

@@ -170,9 +170,25 @@ export default function Home() {
             <div className="grid gap-8 md:grid-cols-3">
               {job.clips.map((clip) => (
                 <article key={clip.id} className="group">
-                  <div className="relative overflow-hidden bg-ink shadow-card">
-                    <video controls playsInline preload="metadata" className="aspect-[9/16] w-full object-cover" src={`${apiUrl}${clip.url}`} />
+                  <div className="clip-player relative overflow-hidden bg-ink shadow-card">
+                    <video controls controlsList="nofullscreen" playsInline preload="metadata" className="aspect-[9/16] w-full object-contain" src={`${apiUrl}${clip.url}`} />
                     <span className="absolute left-3 top-3 bg-lime px-2 py-1 font-body text-[10px] font-bold text-ink">{clip.score}/100</span>
+                    <button
+                      type="button"
+                      aria-label="View clip in 9:16 fullscreen"
+                      onClick={async (event) => {
+                        const player = event.currentTarget.closest<HTMLElement>(".clip-player");
+                        if (!player) return;
+                        if (document.fullscreenElement === player) {
+                          await document.exitFullscreen();
+                        } else {
+                          await player.requestFullscreen();
+                        }
+                      }}
+                      className="absolute right-3 top-3 bg-ink/80 px-2 py-1 font-body text-[10px] font-bold uppercase tracking-[0.1em] text-paper transition hover:bg-ink"
+                    >
+                      Fullscreen
+                    </button>
                   </div>
                   <div className="pt-5">
                     <div className="flex items-start justify-between gap-4">
