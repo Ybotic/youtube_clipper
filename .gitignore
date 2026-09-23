@@ -13,5 +13,6 @@ output/*
 !temp/.gitkeep
 !output/.gitkeep
 *.mp4
+!assets/gameplay/*.mp4
 *.webm
 *.wav

@@ -13,14 +13,16 @@ backend/services/
   transcription.py         Whisper word-level transcript JSON
   clip_detector.py         Structured OpenAI clip selection
   captions.py              ASS caption generation
-  video_editor.py          FFmpeg crop, encode, and caption burn-in
+  tracking.py              Best-effort face tracking and smooth crop data
+  video_editor.py          FFmpeg crop, gameplay composition, encode, and captions
+assets/gameplay/           Optional local attention gameplay videos
 temp/                      Per-job source/transcript scratch files
 output/                    Completed job MP4s
 ```
 
 The API has three useful endpoints:
 
-- `POST /api/generate` with `{ "youtube_url": "..." }`
+- `POST /api/generate` with `{ "youtube_url": "...", "attention_gameplay": "none" }`
 - `GET /api/status/{job_id}` for processing state and finished clip metadata
 - `GET /api/clips/{job_id}/clip_1.mp4` for a rendered file
 
@@ -85,6 +87,10 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000), paste a YouTube URL, and select **Generate clips**.
 
+Optional attention gameplay is selected in the generation form. To enable an option,
+place a suitably licensed video at `assets/gameplay/subway_surfer.mp4` or
+`assets/gameplay/minecraft_parkour.mp4`. Assets are never downloaded automatically.
+
 The first Whisper run downloads the configured model. `WHISPER_MODEL=base` is a reasonable local MVP default; `small`, `medium`, or `turbo` can improve accuracy at a higher compute cost.
 
 ## Docker
@@ -102,9 +108,10 @@ The frontend is at `http://localhost:3000` and the API is at `http://localhost:8
 2. `yt-dlp` downloads one video into the job's temporary directory.
 3. Whisper extracts segments and word timestamps into `transcript.json`.
 4. OpenAI receives the timestamped transcript and returns five structured candidates. The service removes invalid or overlapping candidates and keeps the top three.
-5. FFmpeg seeks to each time range, center-crops to 1080x1920, and encodes H.264/AAC MP4.
-6. The caption service maps transcript words into short ASS events. FFmpeg burns those events into each final MP4.
-7. Status returns clip titles, scores, explanations, timestamps, and download URLs.
+5. OpenCV samples each selected time range for prominent faces. Reliable detections are smoothed and used to steer the vertical crop; unavailable/uncertain tracking falls back to a centered crop. FFmpeg encodes H.264/AAC MP4.
+6. When selected, a local gameplay video is looped silently in the lower 35% while the source video and its audio remain intact in the upper 65%.
+7. The caption service maps transcript words into short ASS events. FFmpeg burns those events into each final MP4.
+8. Status returns clip titles, scores, explanations, timestamps, and download URLs.
 
 ## Environment Variables
 
@@ -123,7 +130,7 @@ The frontend is at `http://localhost:3000` and the API is at `http://localhost:8
 
 - There is no authentication, persistent database, queue, or cloud storage.
 - Processing happens on the backend process, so only a small number of local jobs should run at once.
-- Vertical framing is a center crop; it does not track faces or speakers.
+- Tracking uses lightweight face detection and chooses the most prominent face; it does not identify active speakers. Uncertain detections use a center crop.
 - Caption emphasis is grouped word-timed text rather than per-word karaoke highlighting.
 - Whisper and FFmpeg must be installed and available to the process/container.
 - Some videos may be unavailable because of region, age, login, or YouTube download restrictions.

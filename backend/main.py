@@ -33,7 +33,7 @@ def _update_job(job_id: str, status: str, message: str, **values: Any) -> None:
             jobs[job_id].update(status=status, message=message, **values)
 
 
-def _process_job(job_id: str, youtube_url: str) -> None:
+def _process_job(job_id: str, youtube_url: str, attention_gameplay: str) -> None:
     job_dir = settings.temp_dir / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
     try:
@@ -43,6 +43,7 @@ def _process_job(job_id: str, youtube_url: str) -> None:
             job_dir,
             settings.output_dir,
             lambda status, message: _update_job(job_id, status, message),
+            attention_gameplay,
         )
         _update_job(job_id, "finished", "Finished", clips=clips)
     except Exception as exc:
@@ -71,7 +72,9 @@ def generate(request: GenerateRequest, background_tasks: BackgroundTasks) -> dic
             "clips": [],
             "error": None,
         }
-    background_tasks.add_task(_process_job, job_id, request.youtube_url)
+    background_tasks.add_task(
+        _process_job, job_id, request.youtube_url, request.attention_gameplay
+    )
     return {"job_id": job_id}
 
 

@@ -17,6 +17,7 @@ Stage = Literal[
 
 class GenerateRequest(BaseModel):
     youtube_url: str = Field(min_length=1)
+    attention_gameplay: Literal["none", "subway_surfer", "minecraft_parkour"] = "none"
 
 
 class ClipResult(BaseModel):

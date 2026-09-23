@@ -6,6 +6,7 @@ from backend.services.clip_detector import find_best_clips
 from backend.services.downloader import download_video
 from backend.services.transcription import transcribe
 from backend.services.video_editor import render_clip
+from backend.settings import settings
 
 
 def run_pipeline(
@@ -14,7 +15,9 @@ def run_pipeline(
     job_dir: Path,
     output_dir: Path,
     update: Callable[[str, str], None],
+    attention_gameplay: str = "none",
 ) -> list[dict]:
+    gameplay_asset = _gameplay_asset(attention_gameplay)
     update("downloading", "Downloading video")
     source = download_video(youtube_url, job_dir)
 
@@ -39,6 +42,7 @@ def run_pipeline(
             clip.end,
             output_path,
             subtitle_path,
+            gameplay_asset=gameplay_asset,
         )
         results.append(
             {
@@ -54,3 +58,21 @@ def run_pipeline(
 
     shutil.rmtree(job_dir, ignore_errors=True)
     return results
+
+
+def _gameplay_asset(selection: str) -> Path | None:
+    if selection == "none":
+        return None
+    filenames = {
+        "subway_surfer": "subway_surfer.mp4",
+        "minecraft_parkour": "minecraft_parkour.mp4",
+    }
+    filename = filenames.get(selection)
+    if filename is None:
+        raise ValueError("Unsupported attention gameplay selection.")
+    asset = settings.gameplay_dir / filename
+    if not asset.is_file():
+        raise FileNotFoundError(
+            f"Gameplay asset is missing: assets/gameplay/{filename}. Add the video locally and try again."
+        )
+    return asset

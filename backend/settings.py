@@ -25,6 +25,7 @@ class Settings:
     )
     temp_dir: Path = ROOT_DIR / "temp"
     output_dir: Path = ROOT_DIR / "output"
+    gameplay_dir: Path = ROOT_DIR / "assets" / "gameplay"
 
 
 settings = Settings()

@@ -9,6 +9,7 @@ COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu128 torch \
     && pip install --no-cache-dir -r backend/requirements.txt
 COPY backend backend
+COPY assets assets
 RUN mkdir -p temp output
 
 EXPOSE 8000

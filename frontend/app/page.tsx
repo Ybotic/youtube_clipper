@@ -38,6 +38,7 @@ function formatTime(seconds: number) {
 
 export default function Home() {
   const [url, setUrl] = useState("");
+  const [attentionGameplay, setAttentionGameplay] = useState("none");
   const [job, setJob] = useState<Job | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -67,7 +68,7 @@ export default function Home() {
       const response = await fetch(`${apiUrl}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ youtube_url: url.trim() }),
+        body: JSON.stringify({ youtube_url: url.trim(), attention_gameplay: attentionGameplay }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Could not start this job.");
@@ -113,6 +114,17 @@ export default function Home() {
               placeholder="Paste a YouTube URL"
               className="mt-4 w-full border-b border-paper/30 bg-transparent py-3 font-body text-sm outline-none placeholder:text-paper/35 focus:border-lime"
             />
+            <label htmlFor="attention-gameplay" className="mt-6 block font-body text-[10px] uppercase tracking-[0.2em] text-paper/55">Attention Gameplay</label>
+            <select
+              id="attention-gameplay"
+              value={attentionGameplay}
+              onChange={(event) => setAttentionGameplay(event.target.value)}
+              className="mt-3 w-full border-b border-paper/30 bg-ink py-3 font-body text-sm text-paper outline-none focus:border-lime"
+            >
+              <option value="none">None</option>
+              <option value="subway_surfer">Subway Surfers</option>
+              <option value="minecraft_parkour">Minecraft Parkour</option>
+            </select>
             <button disabled={submitting} className="mt-7 flex w-full items-center justify-between bg-lime px-4 py-4 font-body text-xs font-bold uppercase tracking-[0.14em] text-ink transition hover:bg-white disabled:cursor-wait disabled:opacity-60">
               {submitting ? "Starting..." : "Generate clips"}
               <span className="text-lg leading-none">-&gt;</span>
